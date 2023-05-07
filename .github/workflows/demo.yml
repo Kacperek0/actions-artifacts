@@ -36,7 +36,7 @@ jobs:
         id: npm-test
         run: npm run test
       - name: Upload coverage
-        if: steps.npm-test.outcome != 'success'
+        if: failure() && steps.npm-test.outcome != 'success'
         uses: actions/upload-artifact@v3
         with:
           name: test-report

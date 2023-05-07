@@ -77,6 +77,9 @@ jobs:
           inlineScript: |
             az storage blob upload-batch --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} --account-key ${{ secrets.AZURE_STORAGE_KEY }} --destination \$web --source .
   report:
+    needs:
+      - lint
+      - deploy
     runs-on: ubuntu-latest
     if: failure()
     steps:

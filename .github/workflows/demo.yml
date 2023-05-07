@@ -76,3 +76,11 @@ jobs:
         with:
           inlineScript: |
             az storage blob upload-batch --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} --account-key ${{ secrets.AZURE_STORAGE_KEY }} --destination \$web --source .
+  report:
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: Issue summary
+        run: |
+          echo "Report:"
+          echo "${{ github }}"

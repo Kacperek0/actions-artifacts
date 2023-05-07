@@ -62,7 +62,9 @@ jobs:
           name: website
           path: dist
   deploy:
-    needs: build
+    needs:
+      - build
+      - lint
     runs-on: ubuntu-latest
     steps:
       - name: Get build artifact
@@ -78,7 +80,6 @@ jobs:
             az storage blob upload-batch --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} --account-key ${{ secrets.AZURE_STORAGE_KEY }} --destination \$web --source .
   report:
     needs:
-      - lint
       - deploy
     runs-on: ubuntu-latest
     if: failure()
@@ -86,4 +87,4 @@ jobs:
       - name: Issue summary
         run: |
           echo "Report:"
-          echo "${{ github }}"
+          echo "${{ toJSON(github) }}"

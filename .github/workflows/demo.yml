@@ -19,79 +19,79 @@ jobs:
         run: npm ci
       - name: Lint code
         run: npm run lint
-      - name: Check Productivity
-        uses: kacperek0/developer-productivity@main
+      # - name: Check Productivity
+      #   uses: kacperek0/developer-productivity@main
+      #   with:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+      #     LLM_PROVIDER: "openai"
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        uses: actions/cache@v3
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-          LLM_PROVIDER: "openai"
-  # test:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Get code
-  #       uses: actions/checkout@v3
-  #     - name: Cache dependencies
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: ~/.npm
-  #         key: node-modules-${{ hashFiles('**/package-lock.json') }}
-  #     - name: Install dependencies
-  #       run: npm ci
-  #     - name: Lint code
-  #       run: npm run lint
-  #     - name: Test code
-  #       id: npm-test
-  #       run: npm run test
-  #     - name: Upload coverage
-  #       if: failure() && steps.npm-test.outcome != 'success'
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: test-report
-  #         path: test.json
-  # build:
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Get code
-  #       uses: actions/checkout@v3
-  #     - name: Cache dependencies
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: ~/.npm
-  #         key: node-modules-${{ hashFiles('**/package-lock.json') }}
-  #     - name: Install dependencies
-  #       run: npm ci
-  #     - name: Build website
-  #       run: npm run build
-  #     - name: Upload artifact
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: website
-  #         path: dist
-  # deploy:
-  #   needs:
-  #     - build
-  #     - lint
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Get build artifact
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: website
-  #     - name: Output artifact
-  #       run: ls -l
-  #     - name: Upload files to Storage Account
-  #       uses: azure/CLI@v1
-  #       with:
-  #         inlineScript: |
-  #           az storage blob upload-batch --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} --account-key ${{ secrets.AZURE_STORAGE_KEY }} --destination \$web --source .
-  # report:
-  #   needs:
-  #     - deploy
-  #   runs-on: ubuntu-latest
-  #   if: failure()
-  #   steps:
-  #     - name: Issue summary
-  #       run: |
-  #         echo "Report:"
-  #         echo "${{ toJSON(github) }}"
+          path: ~/.npm
+          key: node-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint code
+        run: npm run lint
+      - name: Test code
+        id: npm-test
+        run: npm run test
+      - name: Upload coverage
+        if: failure() && steps.npm-test.outcome != 'success'
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: test.json
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: node-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Build website
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: website
+          path: dist
+  deploy:
+    needs:
+      - build
+      - lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: website
+      - name: Output artifact
+        run: ls -l
+      - name: Upload files to Storage Account
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az storage blob upload-batch --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} --account-key ${{ secrets.AZURE_STORAGE_KEY }} --destination \$web --source .
+  report:
+    needs:
+      - deploy
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: Issue summary
+        run: |
+          echo "Report:"
+          echo "${{ toJSON(github) }}"
